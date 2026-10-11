@@ -522,7 +522,7 @@ function startGame() {
   respawnPlayer(); loadLevel(0); game.state = 'playing';
   document.body.classList.add('playing'); ui.pause.hidden = true;
   say('¡Corre, gallina! Popó: clic izq. / gatillo · Picotazo: clic der. / agarre · Aletea: Espacio / A');
-  if (!renderer.xr.isPresenting) renderer.domElement.requestPointerLock?.();
+  if (!renderer.xr.isPresenting) lockPointer();
 }
 function respawnPlayer() {
   player.position.set(COOP.x, 0, COOP.z + 0.2); playerVel.set(0, 0, 0); vy = 0; flaps = CFG.maxFlaps;
@@ -646,7 +646,8 @@ document.addEventListener('pointerlockchange', () => {
   if (locked()) { if (game.state === 'paused') { game.state = 'playing'; ui.pause.hidden = true; } }
   else if (game.state === 'playing') { game.state = 'paused'; ui.pause.hidden = false; }
 });
-ui.pause.addEventListener('click', () => renderer.domElement.requestPointerLock?.());
+function lockPointer() { try { renderer.domElement.requestPointerLock?.()?.catch?.(() => {}); } catch { /* sin pointer lock */ } }
+ui.pause.addEventListener('click', lockPointer);
 ui.play.addEventListener('click', () => { ui.results.style.display = 'none'; startGame(); });
 
 // ---------------------------------------------------------------- entrada: Meta Quest
