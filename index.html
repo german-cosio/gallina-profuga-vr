@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2b1d12">
+  <meta name="description" content="Gallina Prófuga VR: eres una gallina en una granja y el granjero quiere degollarte. Cumple misiones, hazle popó a la gente y sube de nivel. Meta Quest 3 / 3S y computadora.">
+  <title>Gallina Prófuga VR — Meta Quest</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #1a120b; }
+    canvas.webgl { display: block; position: fixed; inset: 0; width: 100%; height: 100%; }
+    #vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(20,10,4,.55) 100%); }
+    #flash { position: fixed; inset: 0; pointer-events: none; background: #d6261a; opacity: 0; transition: opacity .35s; }
+    #flash.on { opacity: .45; transition: opacity .05s; }
+    #interface { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; padding: 20px; overflow: auto; }
+    #panel { pointer-events: auto; width: min(560px, 100%); padding: clamp(22px,5vw,40px); border: 1px solid rgba(255,214,112,.28); border-radius: 28px; text-align: center; background: linear-gradient(160deg, rgba(60,36,16,.95), rgba(28,17,8,.92)); box-shadow: 0 30px 90px #000a, 0 0 80px #ffb03011, inset 0 1px #ffffff22; backdrop-filter: blur(14px); }
+    .eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; font-weight: 800; color: #ffd36b; }
+    h1 { margin: 8px 0 0; font-size: clamp(38px, 8.5vw, 62px); line-height: 1; letter-spacing: -.05em; font-weight: 900; color: #fff6e6; }
+    h1 span { color: #ff8c3a; }
+    .subtitle { margin: 16px auto 20px; max-width: 400px; font-size: 15px; line-height: 1.6; color: #e9d7bf; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 22px; text-align: left; }
+    .controls div { border: 1px solid #ffffff1c; border-radius: 14px; background: #ffffff0a; padding: 10px 12px; font-size: 12px; line-height: 1.5; color: #f1e3cc; }
+    .controls b { display: block; color: #ffd36b; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px; }
+    .controls kbd { font: inherit; background: #ffffff18; border-radius: 5px; padding: 1px 5px; }
+    .primary { width: 100%; border: 0; padding: 16px 20px; border-radius: 15px; background: linear-gradient(135deg, #ffd36b, #ff8c3a); color: #3a1d06; font: inherit; font-size: 16px; font-weight: 850; cursor: pointer; transition: transform .15s, filter .15s; }
+    .primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .small { margin: 14px 0 0; color: #c9b291; font-size: 12px; line-height: 1.6; }
+    #results { display: none; margin: 0 0 18px; font-size: 15px; color: #ffe6bd; line-height: 1.7; }
+    #hud { position: fixed; top: 20px; left: 20px; pointer-events: none; display: none; flex-direction: column; gap: 6px; border: 1px solid #ffffff2a; border-radius: 18px; padding: 14px 18px; background: #1a0f06cc; backdrop-filter: blur(10px); box-shadow: 0 15px 40px #00000055; min-width: 220px; }
+    #hud .lvl { font-weight: 900; color: #ffd36b; letter-spacing: .04em; font-size: 14px; }
+    #hud .row { display: flex; justify-content: space-between; gap: 18px; font-size: 14px; color: #fff3df; }
+    #hud .row label { color: #c9b291; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; }
+    #missions { position: fixed; top: 20px; right: 20px; pointer-events: none; display: none; border: 1px solid #ffffff2a; border-radius: 18px; padding: 14px 18px; background: #1a0f06cc; backdrop-filter: blur(10px); min-width: 250px; max-width: 320px; }
+    #missions h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #ffd36b; }
+    #missionList { list-style: none; margin: 0; padding: 0; font-size: 13px; line-height: 1.5; color: #f6e8d2; }
+    #missionList li { padding: 3px 0; }
+    #missionList li.done { color: #8fe28a; text-decoration: line-through; }
+    #missionList li .n { float: right; color: #ffd36b; font-weight: 800; margin-left: 8px; }
+    #banner { position: fixed; left: 50%; top: 22%; transform: translate(-50%, 0); font-size: clamp(26px, 5vw, 44px); font-weight: 900; text-align: center; text-shadow: 0 2px 18px #000; color: #ffd36b; opacity: 0; transition: opacity .18s, transform .18s; pointer-events: none; white-space: nowrap; }
+    #banner.show { opacity: 1; transform: translate(-50%, -10px); }
+    #hint { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); pointer-events: none; font-size: 13px; color: #fff0d6; border: 1px solid #ffffff26; background: #1a0f06c8; border-radius: 25px; padding: 10px 16px; display: none; max-width: 90vw; text-align: center; }
+    #crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #0008; pointer-events: none; display: none; }
+    #pause { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #0009; color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; text-align: center; line-height: 1.6; }
+    #pause[hidden] { display: none; }
+    #topLogo { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); color: #ffe3b0; letter-spacing: .08em; font-size: 12px; font-weight: 900; text-shadow: 0 1px 12px #000; pointer-events: none; }
+    #help { position: fixed; right: 20px; bottom: 22px; color: #c9b291; font-size: 11px; pointer-events: none; }
+    @media (max-width: 640px) { #help { display: none; } .controls { grid-template-columns: 1fr; } #missions { max-width: 46vw; min-width: 0; } #hud { min-width: 0; } }
+    /* The official three.js VR button is docked above the desktop action bar. */
+    #VRButton { z-index: 10 !important; position: fixed !important; bottom: 18px !important; left: 50% !important; transform: translateX(-50%) !important; width: 190px !important; border-radius: 16px !important; border: 1px solid #ffd36b !important; background: #5a3410 !important; opacity: .95 !important; font-weight: 800 !important; }
+    body.playing #interface, body.playing #topLogo { display: none !important; }
+    body.playing #hud, body.playing #missions { display: flex !important; }
+    body.playing #missions { display: block !important; }
+    body.playing #hint, body.playing #crosshair { display: block !important; }
+    body.in-xr #interface, body.in-xr #hud, body.in-xr #missions, body.in-xr #hint, body.in-xr #crosshair, body.in-xr #topLogo, body.in-xr #help, body.in-xr #banner, body.in-xr #vignette, body.in-xr #pause { display: none !important; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="topLogo">🐔 GALLINA PRÓFUGA <span style="color:#ff8c3a">VR</span></div>
+  <div id="vignette"></div>
+  <div id="flash"></div>
+  <div id="interface">
+    <section id="panel" aria-label="Panel del juego">
+      <div class="eyebrow">SIMULADOR DE CAOS · QUEST 3 / 3S</div>
+      <h1>GALLINA <span>PRÓFUGA</span></h1>
+      <p id="panelSubtitle" class="subtitle">Don Ramiro quiere degollarte. Tú quieres venganza. Cumple misiones, hazle popó a la gente, sube al techo del gallinero y sobrevive para subir de nivel.</p>
+      <div id="results"></div>
+      <div class="controls">
+        <div><b>Computadora</b><kbd>WASD</kbd> moverte · mouse mirar · <kbd>Espacio</kbd> aletear (×3) · clic izq. popó · clic der. / <kbd>E</kbd> picotazo</div>
+        <div><b>Meta Quest</b>Stick izq. moverte · stick der. girar · <kbd>A</kbd>/<kbd>X</kbd> aletear · gatillo popó · agarre picotazo</div>
+      </div>
+      <button id="playButton" class="primary" type="button">▶ JUGAR EN ESTA PANTALLA</button>
+      <p id="bestText" class="small">La popó sale por atrás, como gallina de verdad: date la vuelta o tírala desde arriba. El gallinero es zona segura.</p>
+    </section>
+  </div>
+  <div id="hud" aria-live="polite">
+    <div class="lvl" id="levelLabel">Nivel 1</div>
+    <div class="row"><label>Vidas</label><span id="livesLabel">🐔🐔🐔</span></div>
+    <div class="row"><label>Puntos</label><span id="scoreLabel">0</span></div>
+    <div class="row"><label>Popó</label><span id="poopLabel">💩💩💩</span></div>
+  </div>
+  <div id="missions"><h3>Misiones</h3><ul id="missionList"></ul></div>
+  <div id="banner" aria-hidden="true"></div>
+  <div id="hint"></div>
+  <div id="crosshair"></div>
+  <div id="pause" hidden>PAUSA<br><span style="font-size:14px;font-weight:600;color:#ffd36b">Haz clic para seguir huyendo</span></div>
+  <div id="help">WebXR · Desarrollado con Three.js</div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
