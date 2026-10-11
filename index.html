@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2b1d12">
-  <meta name="description" content="Gallina Prófuga VR: eres una gallina en una granja y el granjero quiere degollarte. Cumple misiones, hazle popó a la gente y sube de nivel. Meta Quest 3 / 3S y computadora.">
+  <meta name="description" content="Gallina Prófuga VR: eres una gallina en una granja y el granjero quiere degollarte. Vuela, dispara huevos, hazle popó a la gente y sube de nivel. Meta Quest 3 / 3S y computadora.">
   <title>Gallina Prófuga VR — Meta Quest</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <style>
@@ -12,27 +12,30 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #1a120b; }
     canvas.webgl { display: block; position: fixed; inset: 0; width: 100%; height: 100%; }
-    #vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(20,10,4,.55) 100%); }
+    #vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(20,10,4,.45) 100%); }
     #flash { position: fixed; inset: 0; pointer-events: none; background: #d6261a; opacity: 0; transition: opacity .35s; }
     #flash.on { opacity: .45; transition: opacity .05s; }
     #interface { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; padding: 20px; overflow: auto; }
-    #panel { pointer-events: auto; width: min(560px, 100%); padding: clamp(22px,5vw,40px); border: 1px solid rgba(255,214,112,.28); border-radius: 28px; text-align: center; background: linear-gradient(160deg, rgba(60,36,16,.95), rgba(28,17,8,.92)); box-shadow: 0 30px 90px #000a, 0 0 80px #ffb03011, inset 0 1px #ffffff22; backdrop-filter: blur(14px); }
+    #panel { pointer-events: auto; width: min(600px, 100%); padding: clamp(22px,5vw,40px); border: 1px solid rgba(255,214,112,.28); border-radius: 28px; text-align: center; background: linear-gradient(160deg, rgba(60,36,16,.95), rgba(28,17,8,.92)); box-shadow: 0 30px 90px #000a, 0 0 80px #ffb03011, inset 0 1px #ffffff22; backdrop-filter: blur(14px); }
     .eyebrow { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; font-weight: 800; color: #ffd36b; }
     h1 { margin: 8px 0 0; font-size: clamp(38px, 8.5vw, 62px); line-height: 1; letter-spacing: -.05em; font-weight: 900; color: #fff6e6; }
     h1 span { color: #ff8c3a; }
-    .subtitle { margin: 16px auto 20px; max-width: 400px; font-size: 15px; line-height: 1.6; color: #e9d7bf; }
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 22px; text-align: left; }
-    .controls div { border: 1px solid #ffffff1c; border-radius: 14px; background: #ffffff0a; padding: 10px 12px; font-size: 12px; line-height: 1.5; color: #f1e3cc; }
+    .subtitle { margin: 16px auto 20px; max-width: 440px; font-size: 15px; line-height: 1.6; color: #e9d7bf; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 18px; text-align: left; }
+    .controls div { border: 1px solid #ffffff1c; border-radius: 14px; background: #ffffff0a; padding: 10px 12px; font-size: 12px; line-height: 1.6; color: #f1e3cc; }
     .controls b { display: block; color: #ffd36b; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px; }
     .controls kbd { font: inherit; background: #ffffff18; border-radius: 5px; padding: 1px 5px; }
     .primary { width: 100%; border: 0; padding: 16px 20px; border-radius: 15px; background: linear-gradient(135deg, #ffd36b, #ff8c3a); color: #3a1d06; font: inherit; font-size: 16px; font-weight: 850; cursor: pointer; transition: transform .15s, filter .15s; }
     .primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .secondary { width: 100%; margin-top: 10px; border: 1px solid #ffd36b55; padding: 11px 16px; border-radius: 13px; background: #ffffff0d; color: #ffe3b0; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
     .small { margin: 14px 0 0; color: #c9b291; font-size: 12px; line-height: 1.6; }
     #results { display: none; margin: 0 0 18px; font-size: 15px; color: #ffe6bd; line-height: 1.7; }
-    #hud { position: fixed; top: 20px; left: 20px; pointer-events: none; display: none; flex-direction: column; gap: 6px; border: 1px solid #ffffff2a; border-radius: 18px; padding: 14px 18px; background: #1a0f06cc; backdrop-filter: blur(10px); box-shadow: 0 15px 40px #00000055; min-width: 220px; }
+    #hud { position: fixed; top: 20px; left: 20px; pointer-events: none; display: none; flex-direction: column; gap: 6px; border: 1px solid #ffffff2a; border-radius: 18px; padding: 14px 18px; background: #1a0f06cc; backdrop-filter: blur(10px); box-shadow: 0 15px 40px #00000055; min-width: 230px; }
     #hud .lvl { font-weight: 900; color: #ffd36b; letter-spacing: .04em; font-size: 14px; }
-    #hud .row { display: flex; justify-content: space-between; gap: 18px; font-size: 14px; color: #fff3df; }
+    #hud .row { display: flex; justify-content: space-between; gap: 18px; font-size: 14px; color: #fff3df; align-items: center; }
     #hud .row label { color: #c9b291; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; }
+    #staminaWrap { flex: 1; height: 8px; border-radius: 6px; background: #ffffff22; overflow: hidden; margin-left: 10px; }
+    #staminaBar { height: 100%; width: 100%; background: linear-gradient(90deg, #7fe0a0, #c9f27a); transition: width .1s linear; }
     #missions { position: fixed; top: 20px; right: 20px; pointer-events: none; display: none; border: 1px solid #ffffff2a; border-radius: 18px; padding: 14px 18px; background: #1a0f06cc; backdrop-filter: blur(10px); min-width: 250px; max-width: 320px; }
     #missions h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: #ffd36b; }
     #missionList { list-style: none; margin: 0; padding: 0; font-size: 13px; line-height: 1.5; color: #f6e8d2; }
@@ -73,14 +76,15 @@
     <section id="panel" aria-label="Panel del juego">
       <div class="eyebrow">SIMULADOR DE CAOS · QUEST 3 / 3S</div>
       <h1>GALLINA <span>PRÓFUGA</span></h1>
-      <p id="panelSubtitle" class="subtitle">Don Ramiro quiere degollarte. Tú quieres venganza. Cumple misiones, hazle popó a la gente, sube al techo del gallinero y sobrevive para subir de nivel.</p>
+      <p id="panelSubtitle" class="subtitle">Don Ramiro quiere degollarte. Tú quieres venganza. Vuela, dispara huevos, hazle popó a la gente, aterriza en el molino y sobrevive para subir de nivel.</p>
       <div id="results"></div>
       <div class="controls">
-        <div><b>Computadora</b><kbd>WASD</kbd> moverte · mouse mirar · <kbd>Espacio</kbd> aletear (×3) · clic izq. popó · clic der. / <kbd>E</kbd> picotazo</div>
-        <div><b>Meta Quest</b>Stick izq. moverte · stick der. girar · <kbd>A</kbd>/<kbd>X</kbd> aletear · gatillo popó · agarre picotazo</div>
+        <div><b>Computadora</b><kbd>WASD</kbd> moverte · mouse mirar · mantén <kbd>Espacio</kbd> volar · clic izq. huevo · clic der. / <kbd>E</kbd> picotazo · <kbd>Q</kbd> popó · <kbd>C</kbd> cambiar vista</div>
+        <div><b>Meta Quest</b>Stick izq. moverte · stick der. girar · mantén <kbd>A</kbd>/<kbd>X</kbd> volar · gatillo huevo · agarre picotazo · <kbd>B</kbd>/<kbd>Y</kbd> popó · clic stick der. cambiar vista</div>
       </div>
       <button id="playButton" class="primary" type="button">▶ JUGAR EN ESTA PANTALLA</button>
-      <p id="bestText" class="small">La popó sale por atrás, como gallina de verdad: date la vuelta o tírala desde arriba. El gallinero es zona segura.</p>
+      <button id="viewButton" class="secondary" type="button">👁 Vista: tercera persona (C)</button>
+      <p id="bestText" class="small">La popó sale por atrás, como gallina de verdad; los huevos van a donde apuntas. Volar gasta energía: se recupera en el suelo. El gallinero es zona segura.</p>
     </section>
   </div>
   <div id="hud" aria-live="polite">
@@ -88,6 +92,8 @@
     <div class="row"><label>Vidas</label><span id="livesLabel">🐔🐔🐔</span></div>
     <div class="row"><label>Puntos</label><span id="scoreLabel">0</span></div>
     <div class="row"><label>Popó</label><span id="poopLabel">💩💩💩</span></div>
+    <div class="row"><label>Huevos</label><span id="eggLabel">🥚🥚🥚🥚</span></div>
+    <div class="row"><label>Vuelo</label><div id="staminaWrap"><div id="staminaBar"></div></div></div>
   </div>
   <div id="missions"><h3>Misiones</h3><ul id="missionList"></ul></div>
   <div id="banner" aria-hidden="true"></div>
